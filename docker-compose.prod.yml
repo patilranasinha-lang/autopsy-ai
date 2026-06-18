@@ -1,0 +1,112 @@
+# ===========================================
+# Docker Compose - Production Environment
+# ===========================================
+# Optimized for cloud deployment
+# ===========================================
+name: autopsy-ai-prod
+
+services:
+  # ===========================================
+  # PostgreSQL Database (Production)
+  # ===========================================
+  db:
+    image: postgres:16-alpine
+    container_name: autopsy-db-prod
+    restart: always
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+    volumes:
+      - postgres_data:/var/lib/postgresql/data/
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
+    networks:
+      - app-network
+    deploy:
+      resources:
+        limits:
+          cpus: '1'
+          memory: '1G'
+        reservations:
+          cpus: '0.25'
+          memory: '256M'
+
+  # ===========================================
+  # Backend API (Production)
+  # ===========================================
+  backend:
+    build:
+      context: ./backend
+      target: production
+    container_name: autopsy-backend-prod
+    restart: always
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:5000/health || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+      start_period: 30s
+    environment:
+      FLASK_ENV: production
+      SECRET_KEY: ${SECRET_KEY}
+      JWT_SECRET_KEY: ${JWT_SECRET_KEY}
+      LOG_LEVEL: ${LOG_LEVEL:-INFO}
+      DATABASE_URL: ${DATABASE_URL}
+    depends_on:
+      db:
+        condition: service_healthy
+    networks:
+      - app-network
+    deploy:
+      resources:
+        limits:
+          cpus: '2'
+          memory: '1G'
+        reservations:
+          cpus: '0.5'
+          memory: '256M'
+
+  # ===========================================
+  # Frontend Web App (Production, Nginx)
+  # ===========================================
+  frontend:
+    build:
+      context: ./frontend
+      target: production
+    container_name: autopsy-frontend-prod
+    restart: always
+    depends_on:
+      - backend
+    ports:
+      - "80:80"
+      - "443:443"
+    networks:
+      - app-network
+    deploy:
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: '256M'
+        reservations:
+          cpus: '0.1'
+          memory: '64M'
+
+# ===========================================
+# Volumes for Persistence
+# ===========================================
+volumes:
+  postgres_data:
+    name: autopsy-postgres-data-prod
+
+# ===========================================
+# Shared Network
+# ===========================================
+networks:
+  app-network:
+    name: autopsy-network-prod
+    driver: bridge

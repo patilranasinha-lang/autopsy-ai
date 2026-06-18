@@ -1,41 +1,98 @@
-version: '3.8'
+# ===========================================
+# Docker Compose - Development Environment
+# ===========================================
+# One command to start all services: `docker compose up`
+# ===========================================
+name: autopsy-ai
 
 services:
+  # ===========================================
+  # PostgreSQL Database
+  # ===========================================
   db:
-    image: postgres:15-alpine
+    image: postgres:16-alpine
+    container_name: autopsy-db
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-postgres} -d ${POSTGRES_DB:-autopsy_ai}"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
     volumes:
       - postgres_data:/var/lib/postgresql/data/
     environment:
-      - POSTGRES_USER=postgres
-      - POSTGRES_PASSWORD=postgres
-      - POSTGRES_DB=autopsy_ai
+      POSTGRES_USER: ${POSTGRES_USER:-postgres}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
+      POSTGRES_DB: ${POSTGRES_DB:-autopsy_ai}
     ports:
-      - "5432:5432"
+      - "${DB_PORT:-5432}:5432"
+    networks:
+      - app-network
 
+  # ===========================================
+  # Backend API
+  # ===========================================
   backend:
-    build: ./backend
+    build:
+      context: ./backend
+      target: development
+    container_name: autopsy-backend
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:5000/health || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+      start_period: 30s
     volumes:
       - ./backend:/app
+      - /app/__pycache__  # Ignore local __pycache__
     environment:
-      - DATABASE_URL=postgresql://postgres:postgres@db:5432/autopsy_ai
-      - SECRET_KEY=dev-secret-key
-      - JWT_SECRET_KEY=jwt-dev-secret-key
+      FLASK_ENV: development
+      SECRET_KEY: ${SECRET_KEY:-dev-secret-key-please-change}
+      JWT_SECRET_KEY: ${JWT_SECRET_KEY:-jwt-dev-secret-key-please-change}
+      LOG_LEVEL: ${LOG_LEVEL:-DEBUG}
+      DATABASE_URL: ${DATABASE_URL:-postgresql://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-postgres}@db:5432/${POSTGRES_DB:-autopsy_ai}}
     ports:
-      - "5000:5000"
+      - "${BACKEND_PORT:-5000}:5000"
     depends_on:
-      - db
+      db:
+        condition: service_healthy
+    networks:
+      - app-network
 
+  # ===========================================
+  # Frontend Web App
+  # ===========================================
   frontend:
-    build: ./frontend
+    build:
+      context: ./frontend
+      target: development
+    container_name: autopsy-frontend
+    restart: unless-stopped
     volumes:
       - ./frontend:/app
-      - /app/node_modules
-    ports:
-      - "3000:3000"
+      - /app/node_modules  # Keep container node_modules
     environment:
-      - VITE_API_URL=http://localhost:5000/api
+      - VITE_API_URL=http://localhost:${BACKEND_PORT:-5000}
+    ports:
+      - "${FRONTEND_PORT:-3000}:3000"
     depends_on:
       - backend
+    networks:
+      - app-network
 
+# ===========================================
+# Volumes for Persistence
+# ===========================================
 volumes:
   postgres_data:
+    name: autopsy-postgres-data
+
+# ===========================================
+# Shared Network
+# ===========================================
+networks:
+  app-network:
+    name: autopsy-network
+    driver: bridge
