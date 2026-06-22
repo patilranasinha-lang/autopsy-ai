@@ -28,10 +28,16 @@ def create_app(config_name=None):
     from app.routes.auth import auth_bp
     from app.routes.analytics import analytics_bp
     from app.routes.health import health_bp
+    from app.routes.users import users_bp
+    from app.routes.uploads import uploads_bp
+    from app.routes.reports import reports_bp
 
     app.register_blueprint(health_bp)
     app.register_blueprint(auth_bp, url_prefix='/api/auth')
     app.register_blueprint(analytics_bp, url_prefix='/api/analytics')
+    app.register_blueprint(users_bp, url_prefix='/api/users')
+    app.register_blueprint(uploads_bp, url_prefix='/api/uploads')
+    app.register_blueprint(reports_bp, url_prefix='/api/reports')
 
     @app.errorhandler(400)
     def bad_request(error):

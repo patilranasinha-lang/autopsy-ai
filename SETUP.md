@@ -1,161 +1,163 @@
-# Autopsy AI - Setup Guide
-
-Welcome to the Autopsy AI development setup! This guide will get you up and running in minutes.
+# Autopsy AI Setup Guide
 
 ## Prerequisites
 
-You will need the following installed:
-- **Docker** (24.x or later) - [Docker Desktop](https://www.docker.com/get-started)
-- **Git** (2.x or later) - [Download Git](https://git-scm.com/downloads)
-- **Node.js** (optional, for local development without Docker)
+- Docker and Docker Compose
+- Python 3.10+
+- Node.js 18+
 
-## Quick Start (One-Command Setup)
+## Quick Start (Docker)
 
-1. **Clone the repository**
+The easiest way to get started is using Docker Compose:
+
+```bash
+# 1. Clone the repository
+git clone https://github.com/your-org/autopsy-ai.git
+cd autopsy-ai
+
+# 2. Copy environment file
+cp .env.example .env
+
+# 3. Start all services (database, backend, frontend)
+docker-compose up --build
+
+# 4. Access the application
+# Frontend: http://localhost:3000
+# Backend API: http://localhost:5000
+# Health check: http://localhost:5000/health
+```
+
+## Local Development (Without Docker)
+
+### Backend Setup
+
+1. Create a virtual environment:
    ```bash
-   git clone <your-repo-url>
-   cd AutopsyAI
+   cd backend
+   python -m venv venv
+   source venv/bin/activate  # Linux/Mac
+   # or
+   .\venv\Scripts\activate  # Windows
    ```
 
-2. **Copy and configure environment variables**
+2. Install dependencies:
+   ```bash
+   pip install -r requirements.txt
+   ```
+
+3. Set up PostgreSQL:
+   - Install PostgreSQL locally or use Docker:
+     ```bash
+     docker run -d \
+       --name postgres-autopsy \
+       -e POSTGRES_USER=postgres \
+       -e POSTGRES_PASSWORD=postgres \
+       -e POSTGRES_DB=autopsy_ai \
+       -p 5432:5432 \
+       postgres:16-alpine
+     ```
+
+4. Copy environment file:
    ```bash
    cp .env.example .env
-   # Edit .env if you need to change passwords or ports
+   # Edit .env with your database credentials
    ```
 
-3. **Start all services**
+5. Run database migrations:
    ```bash
-   docker compose up --build
+   flask db upgrade
    ```
 
-4. **That's it!** Your app is now running:
-   - Frontend: http://localhost:3000
-   - Backend API: http://localhost:5000
-   - Health check: http://localhost:5000/health
-   - PostgreSQL: localhost:5432
+6. Start the backend server:
+   ```bash
+   flask run --debug
+   ```
 
-## Stopping Services
+### Frontend Setup
 
+1. Install dependencies:
+   ```bash
+   cd frontend
+   npm install
+   ```
+
+2. Start the frontend dev server:
+   ```bash
+   npm run dev
+   ```
+
+## Database Migrations
+
+### Create a New Migration
+When you change the models, create a migration:
 ```bash
-# Stop containers but keep data
-docker compose stop
-
-# Stop and remove containers, but keep volumes
-docker compose down
-
-# Stop and remove everything (including data)
-docker compose down -v
+cd backend
+flask db migrate -m "Description of change"
 ```
 
-## Development
-
-### Hot Reloading
-- Both backend and frontend support hot reloading via Docker volumes!
-- Edit files locally, and changes will automatically reflect inside containers!
-
-### Accessing Container Logs
+### Apply Migrations
 ```bash
-# All services
-docker compose logs -f
-
-# Specific service
-docker compose logs -f backend
-docker compose logs -f frontend
-docker compose logs -f db
+flask db upgrade
 ```
 
-### Running Backend Tests
+### Rollback Migrations
 ```bash
-# First, exec into the backend container
-docker compose exec backend pytest -v
+flask db downgrade
 ```
 
-## Production Deployment
+## API Endpoints
 
-For production deployment, use `docker-compose.prod.yml`:
+### Users
+- `POST /api/users` - Create a new user
+- `GET /api/users` - List users (paginated)
+- `GET /api/users/<id>` - Get a single user
 
-1. Copy env vars (ensure production values are used):
-   ```bash
-   cp .env.example .env
-   # Set secure passwords and secrets!
-   ```
+### Uploads
+- `POST /api/uploads` - Create a new upload
+- `GET /api/uploads` - List uploads (paginated)
+- `GET /api/uploads?user_id=<id>` - Filter uploads by user
+- `GET /api/uploads/<id>` - Get a single upload
 
-2. Start production services:
-   ```bash
-   docker compose -f docker-compose.prod.yml up -d
-   ```
+### Reports
+- `POST /api/reports` - Create a new report
+- `GET /api/reports` - List reports (paginated)
+- `GET /api/reports?user_id=<id>` - Filter reports by user
+- `GET /api/reports/<id>` - Get a single report
+
+## Running Tests
+
+### Backend Tests
+```bash
+cd backend
+pytest -v
+```
+
+### Coverage Report
+```bash
+pytest --cov=app --cov-report=term-missing
+```
 
 ## Architecture Overview
 
-### Services
-| Service     | Description                          | Port |
-|-------------|--------------------------------------|------|
-| Frontend    | React + Vite (Dev), Nginx (Prod)    | 3000 |
-| Backend API | Flask + Gunicorn                     | 5000 |
-| PostgreSQL  | Database                             | 5432 |
-
-### File Structure
+### Backend Structure
 ```
-AutopsyAI/
-├── backend/
-│   ├── app/
-│   │   ├── routes/
-│   │   ├── services/
-│   │   ├── models.py
-│   │   └── logger.py
-│   ├── Dockerfile (multi-stage dev/prod)
-│   └── requirements.txt
-├── frontend/
-│   ├── src/
-│   ├── public/
-│   ├── Dockerfile (multi-stage dev/prod)
-│   └── nginx.conf
-├── docker-compose.yml (development)
-├── docker-compose.prod.yml (production)
-└── .env.example
+backend/
+├── app/
+│   ├── __init__.py       # Application factory
+│   ├── models.py         # SQLAlchemy models (User, Upload, Report)
+│   ├── repositories/     # Data access layer
+│   ├── services/         # Business logic layer
+│   ├── routes/           # API endpoints
+│   └── logger.py         # Logging configuration
+├── migrations/           # Alembic database migrations
+├── tests/                # Test suite
+└── requirements.txt      # Dependencies
 ```
 
-## Troubleshooting
-
-### Common Issues
-
-1. **Port already in use**
-   - Check if port 3000/5000/5432 is occupied:
-     ```bash
-     # On Linux/macOS
-     lsof -i :3000
-     # On Windows
-     netstat -ano | findstr :3000
-     ```
-   - Change ports in `.env` file!
-
-2. **Database connection errors**
-   - Ensure the `db` container is healthy:
-     ```bash
-     docker compose ps
-     ```
-   - Check logs: `docker compose logs db`
-
-3. **Changes not reflecting**
-   - Restart containers:
-     ```bash
-     docker compose restart
-     ```
-   - Rebuild images if dependencies changed:
-     ```bash
-     docker compose up --build
-     ```
-
-4. **Permission denied errors (Docker volumes)**
-   - On Linux/macOS: Ensure your user has permissions for Docker!
-
-### Future Scalability
-
-This architecture is designed for future expansion! You can easily add:
-
-- **ML Services** (add as new containers with their own Dockerfile and mount model files)
-- **Redis Cache** (add to docker-compose.yml for caching API responses or JWT tokens)
-- **Celery Workers** (for background processing)
-- **Chrome Extension API** (add as a new service)
-
-Just follow the existing pattern in `docker-compose.yml`!
+### Key Architectural Decisions
+1. **Repository Pattern:** Separates data access logic from business logic
+2. **Service Layer:** Contains all business logic, uses repositories for data access
+3. **Flask-Migrate:** Manages database schema changes
+4. **Pagination:** All list endpoints support pagination to handle large datasets
+5. **Database Indexes:** Added on frequently filtered columns (username, email, user_id)
+6. **Cascading Deletes:** Deleting a user automatically deletes their uploads and reports
