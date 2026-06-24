@@ -32,9 +32,12 @@ class AnalyticsService:
         Get the count of events grouped by day for a specific user.
         Useful for rendering line charts or bar charts over time.
         """
-        # Truncate timestamp to day for PostgreSQL
-        day_column = func.date_trunc('day', BehaviorEvent.timestamp)
-        
+        # Handle sqlite vs postgres
+        if db.engine.name == 'sqlite':
+            day_column = func.date(BehaviorEvent.timestamp)
+        else:
+            day_column = func.date_trunc('day', BehaviorEvent.timestamp)
+            
         results = db.session.query(
             day_column.label('date'),
             func.count(BehaviorEvent.id).label('count')
@@ -50,7 +53,11 @@ class AnalyticsService:
         for row in results:
             if row.date:
                 # Format datetime object to string YYYY-MM-DD
-                date_str = row.date.strftime('%Y-%m-%d')
+                # SQLite returns string, PostgreSQL returns datetime/date
+                if isinstance(row.date, str):
+                    date_str = row.date.split(' ')[0] # just in case there's time
+                else:
+                    date_str = row.date.strftime('%Y-%m-%d')
                 timeline.append({
                     "date": date_str,
                     "count": row.count
