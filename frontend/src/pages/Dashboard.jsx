@@ -1,173 +1,195 @@
-import { 
-  Brain, 
-  Shield, 
-  Upload, 
-  FileText,
-  TrendingUp,
-  Users,
-  Clock,
-  Database
-} from 'lucide-react'
-import Card from '../components/Card'
-import Button from '../components/Button'
-import { Link } from 'react-router-dom'
+import { useState, useEffect } from 'react';
+import axios from 'axios';
+import { Brain, Database, FileText, Clock, AlertCircle } from 'lucide-react';
+import Card from '../components/Card';
+import Button from '../components/Button';
+import { Link } from 'react-router-dom';
+
+import ActivityTimeline from '../components/widgets/ActivityTimeline';
+import ActivityDistribution from '../components/widgets/ActivityDistribution';
+import ActivityHeatmap from '../components/widgets/ActivityHeatmap';
+import InsightsPanel from '../components/widgets/InsightsPanel';
 
 const Dashboard = () => {
-  const stats = [
-    { 
-      label: 'Total Analyses', 
-      value: '24', 
-      icon: Brain,
-      color: 'text-emerald-600',
-      bgColor: 'bg-emerald-100'
-    },
-    { 
-      label: 'Files Uploaded', 
-      value: '156', 
-      icon: Database,
-      color: 'text-blue-600',
-      bgColor: 'bg-blue-100'
-    },
-    { 
-      label: 'Reports Generated', 
-      value: '18', 
-      icon: FileText,
-      color: 'text-purple-600',
-      bgColor: 'bg-purple-100'
-    },
-    { 
-      label: 'Processing Time', 
-      value: '1.2h', 
-      icon: Clock,
-      color: 'text-orange-600',
-      bgColor: 'bg-orange-100'
-    }
-  ]
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [summary, setSummary] = useState(null);
+  const [timeline, setTimeline] = useState(null);
+  const [heatmap, setHeatmap] = useState(null);
+  const [insights, setInsights] = useState(null);
+  const [period, setPeriod] = useState('daily');
 
-  const recentReports = [
-    { id: 1, name: 'User Behavior Analysis Q2', date: '2 hours ago', status: 'Completed' },
-    { id: 2, name: 'Engagement Metrics', date: 'Yesterday', status: 'Processing' },
-    { id: 3, name: 'Retention Study', date: '3 days ago', status: 'Completed' }
-  ]
+  useEffect(() => {
+    const fetchDashboardData = async () => {
+      try {
+        setLoading(true);
+        setError(null);
+        
+        // Use token if available, otherwise just make the request (might fail if protected)
+        const token = localStorage.getItem('token');
+        const headers = token ? { Authorization: `Bearer ${token}` } : {};
+
+        const [summaryRes, timelineRes, heatmapRes, insightsRes] = await Promise.all([
+          axios.get('/api/analytics/summary', { headers }),
+          axios.get(`/api/analytics/timeline?period=${period}`, { headers }),
+          axios.get('/api/analytics/heatmap', { headers }),
+          axios.get('/api/analytics/insights', { headers })
+        ]);
+
+        setSummary(summaryRes.data);
+        setTimeline(timelineRes.data.timeline);
+        setHeatmap(heatmapRes.data);
+        setInsights(insightsRes.data.insights);
+      } catch (err) {
+        console.error('Error fetching dashboard data:', err);
+        setError('Failed to load dashboard data. Please try again.');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchDashboardData();
+  }, [period]);
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center h-full min-h-[400px]">
+        <div className="w-8 h-8 border-4 border-emerald-500 border-t-transparent rounded-full animate-spin"></div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="p-6 bg-red-50 border border-red-200 rounded-lg flex items-start gap-3">
+        <AlertCircle className="text-red-600 mt-0.5" size={24} />
+        <div>
+          <h3 className="font-semibold text-red-800">Error Loading Dashboard</h3>
+          <p className="text-red-700 mt-1">{error}</p>
+          <Button onClick={() => window.location.reload()} variant="outline" className="mt-4">
+            Retry
+          </Button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
       {/* Header */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-slate-900">Welcome Back!</h1>
-          <p className="text-slate-500 mt-1">Here's what's happening with your analyses</p>
+          <h1 className="text-2xl font-bold text-slate-900">Behavioral Insights</h1>
+          <p className="text-slate-500 mt-1">First-generation analysis of your activity</p>
         </div>
         <Link to="/upload">
-          <Button>
-            <Upload size={20} className="mr-2" />
-            New Upload
-          </Button>
+          <Button>New Upload</Button>
         </Link>
       </div>
 
-      {/* Stats Grid */}
+      {/* Metrics Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-        {stats.map((stat, index) => {
-          const Icon = stat.icon
-          return (
-            <Card key={index} className="p-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm text-slate-500 font-medium">{stat.label}</p>
-                  <p className="text-2xl font-bold text-slate-900 mt-1">{stat.value}</p>
-                </div>
-                <div className={`w-12 h-12 ${stat.bgColor} rounded-xl flex items-center justify-center ${stat.color}`}>
-                  <Icon size={24} />
-                </div>
-              </div>
-            </Card>
-          )
-        })}
-      </div>
-
-      {/* Main Content Grid */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Privacy Notice */}
-        <Card className="lg:col-span-2 p-6">
-          <div className="flex items-start gap-4">
-            <div className="w-12 h-12 bg-blue-100 text-blue-600 rounded-xl flex items-center justify-center shrink-0">
-              <Shield size={24} />
-            </div>
-            <div className="flex-1">
-              <h3 className="text-lg font-semibold text-slate-900">Privacy-First Processing</h3>
-              <p className="text-slate-500 mt-1">
-                All your data is processed locally. Nothing leaves your machine without explicit consent.
-                Your privacy is our top priority.
-              </p>
-              <div className="flex gap-2 mt-4">
-                <span className="px-3 py-1 bg-emerald-100 text-emerald-700 text-xs font-medium rounded-full">
-                  End-to-End Encrypted
-                </span>
-                <span className="px-3 py-1 bg-blue-100 text-blue-700 text-xs font-medium rounded-full">
-                  Local Processing
-                </span>
-              </div>
-            </div>
-          </div>
-        </Card>
-
-        {/* Quick Actions */}
         <Card className="p-6">
-          <h3 className="text-lg font-semibold text-slate-900 mb-4">Quick Actions</h3>
-          <div className="space-y-3">
-            <Button className="w-full justify-start" variant="outline">
-              <Upload size={20} className="mr-3" />
-              Upload Dataset
-            </Button>
-            <Button className="w-full justify-start" variant="outline">
-              <FileText size={20} className="mr-3" />
-              View Reports
-            </Button>
-            <Button className="w-full justify-start" variant="outline">
-              <TrendingUp size={20} className="mr-3" />
-              Start Analysis
-            </Button>
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm text-slate-500 font-medium">Avg Daily Activity</p>
+              <p className="text-2xl font-bold text-slate-900 mt-1">
+                {summary?.average_daily_activity || 0}
+              </p>
+            </div>
+            <div className="w-12 h-12 bg-emerald-100 rounded-xl flex items-center justify-center text-emerald-600">
+              <Brain size={24} />
+            </div>
+          </div>
+        </Card>
+        
+        <Card className="p-6">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm text-slate-500 font-medium">Most Active Hour</p>
+              <p className="text-2xl font-bold text-slate-900 mt-1">
+                {summary?.most_active_hour || '--'}
+              </p>
+            </div>
+            <div className="w-12 h-12 bg-blue-100 rounded-xl flex items-center justify-center text-blue-600">
+              <Clock size={24} />
+            </div>
+          </div>
+        </Card>
+
+        <Card className="p-6">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm text-slate-500 font-medium">Most Active Day</p>
+              <p className="text-2xl font-bold text-slate-900 mt-1">
+                {summary?.most_active_day || '--'}
+              </p>
+            </div>
+            <div className="w-12 h-12 bg-purple-100 rounded-xl flex items-center justify-center text-purple-600">
+              <Database size={24} />
+            </div>
+          </div>
+        </Card>
+
+        <Card className="p-6">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm text-slate-500 font-medium">Least Active Hour</p>
+              <p className="text-2xl font-bold text-slate-900 mt-1">
+                {summary?.least_active_hour || '--'}
+              </p>
+            </div>
+            <div className="w-12 h-12 bg-orange-100 rounded-xl flex items-center justify-center text-orange-600">
+              <FileText size={24} />
+            </div>
           </div>
         </Card>
       </div>
 
-      {/* Recent Reports */}
-      <Card className="p-6">
-        <div className="flex items-center justify-between mb-6">
-          <h3 className="text-lg font-semibold text-slate-900">Recent Reports</h3>
-          <Link to="/reports" className="text-sm text-emerald-600 font-medium hover:text-emerald-700">
-            View all
-          </Link>
-        </div>
-        <div className="space-y-4">
-          {recentReports.map((report) => (
-            <div
-              key={report.id}
-              className="flex items-center justify-between p-4 bg-slate-50 rounded-lg border border-slate-200"
+      {/* Main Charts */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        
+        {/* Timeline Chart */}
+        <Card className="lg:col-span-2 p-6">
+          <div className="flex items-center justify-between mb-4">
+            <h3 className="text-lg font-semibold text-slate-900">Activity Timeline</h3>
+            <select 
+              value={period} 
+              onChange={(e) => setPeriod(e.target.value)}
+              className="px-3 py-1.5 bg-slate-50 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500"
             >
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 bg-purple-100 text-purple-600 rounded-lg flex items-center justify-center">
-                  <FileText size={20} />
-                </div>
-                <div>
-                  <p className="font-medium text-slate-900">{report.name}</p>
-                  <p className="text-sm text-slate-500">{report.date}</p>
-                </div>
-              </div>
-              <span className={`px-3 py-1 text-xs font-medium rounded-full ${
-                report.status === 'Completed'
-                  ? 'bg-emerald-100 text-emerald-700'
-                  : 'bg-yellow-100 text-yellow-700'
-              }`}>
-                {report.status}
-              </span>
-            </div>
-          ))}
-        </div>
-      </Card>
-    </div>
-  )
-}
+              <option value="daily">Daily</option>
+              <option value="weekly">Weekly</option>
+              <option value="monthly">Monthly</option>
+            </select>
+          </div>
+          <ActivityTimeline data={timeline} />
+        </Card>
 
-export default Dashboard
+        {/* Insights Panel */}
+        <Card className="p-6">
+          <h3 className="text-lg font-semibold text-slate-900 mb-4">V1 Insights</h3>
+          <InsightsPanel insights={insights} />
+        </Card>
+
+      </div>
+
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        {/* Heatmap */}
+        <Card className="p-6">
+          <h3 className="text-lg font-semibold text-slate-900 mb-4">Activity Heatmap</h3>
+          <ActivityHeatmap data={heatmap} />
+        </Card>
+
+        {/* Distribution */}
+        <Card className="p-6">
+          <h3 className="text-lg font-semibold text-slate-900 mb-4">Category Distribution</h3>
+          <ActivityDistribution data={summary?.categories_percentage || {}} />
+        </Card>
+      </div>
+      
+    </div>
+  );
+};
+
+export default Dashboard;
