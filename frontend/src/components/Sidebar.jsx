@@ -31,6 +31,11 @@ const Sidebar = () => {
       icon: FileText 
     },
     { 
+      path: '/sessions', 
+      label: 'Sessions', 
+      icon: Brain 
+    },
+    { 
       path: '/settings', 
       label: 'Settings', 
       icon: Settings 
