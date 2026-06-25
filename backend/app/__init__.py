@@ -36,6 +36,7 @@ def create_app(config_name=None):
     from app.routes.uploads import uploads_bp
     from app.routes.reports import reports_bp
     from app.routes.events import events_bp
+    from app.routes.sessions import sessions_bp
 
     app.register_blueprint(health_bp)
     app.register_blueprint(auth_bp, url_prefix='/api/auth')
@@ -44,6 +45,7 @@ def create_app(config_name=None):
     app.register_blueprint(uploads_bp, url_prefix='/api/uploads')
     app.register_blueprint(reports_bp, url_prefix='/api/reports')
     app.register_blueprint(events_bp, url_prefix='/api/events')
+    app.register_blueprint(sessions_bp, url_prefix='/api/sessions')
 
     @app.errorhandler(400)
     def bad_request(error):
