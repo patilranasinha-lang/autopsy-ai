@@ -22,6 +22,7 @@ class User(db.Model, TimestampMixin):
     reports = db.relationship('Report', back_populates='user', cascade='all, delete-orphan', lazy='dynamic')
     events = db.relationship('BehaviorEvent', back_populates='user', cascade='all, delete-orphan', lazy='dynamic')
     sessions = db.relationship('BehaviorSession', back_populates='user', cascade='all, delete-orphan', lazy='dynamic')
+    scores = db.relationship('ProductivityScore', back_populates='user', cascade='all, delete-orphan', lazy='dynamic')
     
     def set_password(self, password):
         self.password_hash = generate_password_hash(password)
