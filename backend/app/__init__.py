@@ -38,6 +38,7 @@ def create_app(config_name=None):
     from app.routes.events import events_bp
     from app.routes.sessions import sessions_bp
     from app.routes.scores import scores_bp
+    from app.routes.habits import habits_bp
 
     app.register_blueprint(health_bp)
     app.register_blueprint(auth_bp, url_prefix='/api/auth')
@@ -48,6 +49,7 @@ def create_app(config_name=None):
     app.register_blueprint(events_bp, url_prefix='/api/events')
     app.register_blueprint(sessions_bp, url_prefix='/api/sessions')
     app.register_blueprint(scores_bp, url_prefix='/api/scores')
+    app.register_blueprint(habits_bp, url_prefix='/api/habits')
 
     @app.errorhandler(400)
     def bad_request(error):
