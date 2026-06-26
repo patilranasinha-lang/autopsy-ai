@@ -3,5 +3,6 @@ from .token_blocklist import TokenBlocklist
 from .events import BehaviorEvent
 from .sessions import BehaviorSession
 from .scores import ProductivityScore
+from .habits import Habit
 
-__all__ = ['TimestampMixin', 'User', 'Upload', 'Report', 'TokenBlocklist', 'BehaviorEvent', 'BehaviorSession', 'ProductivityScore']
+__all__ = ['TimestampMixin', 'User', 'Upload', 'Report', 'TokenBlocklist', 'BehaviorEvent', 'BehaviorSession', 'ProductivityScore', 'Habit']
