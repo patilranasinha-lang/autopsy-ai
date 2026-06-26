@@ -8,6 +8,7 @@ import Sessions from './pages/Sessions'
 import Productivity from './pages/Productivity'
 import Habits from './pages/Habits'
 import Correlations from './pages/Correlations'
+import Procrastination from './pages/Procrastination'
 
 function App() {
   return (
@@ -22,6 +23,7 @@ function App() {
           <Route path="/productivity" element={<Productivity />} />
           <Route path="/habits" element={<Habits />} />
           <Route path="/correlations" element={<Correlations />} />
+          <Route path="/procrastination" element={<Procrastination />} />
         </Route>
       </Routes>
     </Router>

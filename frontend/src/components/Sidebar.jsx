@@ -11,7 +11,8 @@ import {
   Clock,
   Activity,
   Target,
-  Network
+  Network,
+  AlertCircle
 } from 'lucide-react'
 import { useState } from 'react'
 
@@ -48,6 +49,11 @@ const Sidebar = () => {
       path: '/correlations', 
       label: 'Intelligence', 
       icon: Network 
+    },
+    { 
+      path: '/procrastination', 
+      label: 'Procrastination', 
+      icon: AlertCircle 
     },
     { 
       path: '/reports', 
