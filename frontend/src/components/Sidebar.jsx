@@ -9,7 +9,8 @@ import {
   Menu,
   X,
   Clock,
-  Activity
+  Activity,
+  Target
 } from 'lucide-react'
 import { useState } from 'react'
 
@@ -36,6 +37,11 @@ const Sidebar = () => {
       path: '/productivity', 
       label: 'Productivity', 
       icon: Activity 
+    },
+    { 
+      path: '/habits', 
+      label: 'Habits', 
+      icon: Target 
     },
     { 
       path: '/reports', 

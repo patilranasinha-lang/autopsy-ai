@@ -6,6 +6,7 @@ import Reports from './pages/Reports'
 import Settings from './pages/Settings'
 import Sessions from './pages/Sessions'
 import Productivity from './pages/Productivity'
+import Habits from './pages/Habits'
 
 function App() {
   return (
@@ -18,6 +19,7 @@ function App() {
           <Route path="/settings" element={<Settings />} />
           <Route path="/sessions" element={<Sessions />} />
           <Route path="/productivity" element={<Productivity />} />
+          <Route path="/habits" element={<Habits />} />
         </Route>
       </Routes>
     </Router>
