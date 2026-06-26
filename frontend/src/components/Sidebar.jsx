@@ -12,7 +12,8 @@ import {
   Activity,
   Target,
   Network,
-  AlertCircle
+  AlertCircle,
+  Flame
 } from 'lucide-react'
 import { useState } from 'react'
 
@@ -54,6 +55,11 @@ const Sidebar = () => {
       path: '/procrastination', 
       label: 'Procrastination', 
       icon: AlertCircle 
+    },
+    { 
+      path: '/burnout', 
+      label: 'Burnout Risk', 
+      icon: Flame 
     },
     { 
       path: '/reports', 
