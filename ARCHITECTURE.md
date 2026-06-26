@@ -28,6 +28,7 @@ Autopsy AI follows a decoupled client-server architecture, optimized for scalabi
     - **Session Detection Engine:** Uses a strategy pattern (currently `RuleBasedClassifier`) to group raw events into semantic sessions (e.g., "Deep Work", "Entertainment"). This is designed to be easily swappable with ML models in the future without changing the API contract.
     - **Productivity Scoring Engine:** Pipeline of sub-engines (Focus, Consistency, Discipline) that evaluate `BehaviorSession` groupings and output quantitative normalized scores (0-100). Includes an `InsightEngine` for generating NLP-like behavioral analysis.
     - **Habit Detection Engine:** Core behavioral reasoning layer that uses sequential pattern mining, threshold-based routine detection, and trigger analysis to automatically categorize and score user routines. Built to seamlessly integrate with future Sequence Models, Association Rule Mining, and Time Series Models.
+    - **Behavior Correlation Engine:** Statistical layer designed to quantify the relationship between behavioral factors (e.g., Music, Session Length) and productivity outcomes (e.g., Focus, Consistency). Employs Pearson calculations to establish significance levels (p-value proxies) and acts as the causal reasoning foundation. The interface boundary is explicitly designed so `RelationshipAnalyzer` can be swapped from mathematical heuristics to ML Predictive Models (like Random Forests for feature importance) without altering downstream APIs.
 
 ## Data Flow
 
