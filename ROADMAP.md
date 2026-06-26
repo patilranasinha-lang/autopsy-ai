@@ -19,6 +19,7 @@
 - [x] Implement Habit Detection Engine (Pattern mining, triggers, confidence scoring).
 - [x] Implement Behavior Correlation Engine (Statistical causal analysis, insight generation).
 - [x] Implement Procrastination Detection Engine (Distraction loops, time lost estimation).
+- [x] Implement Burnout Risk Engine (Predictive cognitive overload detection).
 - [ ] Add support for more data sources (social media exports, app usage).
 - [ ] Enhance UI/UX for better data storytelling.
 - [ ] Integrate local-first processing options.
