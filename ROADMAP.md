@@ -21,6 +21,7 @@
 - [x] Implement Procrastination Detection Engine (Distraction loops, time lost estimation).
 - [x] Implement Burnout Risk Engine (Predictive cognitive overload detection).
 - [x] Implement Focus Prediction Engine (Forecast high-focus windows based on chronotype and routines).
+- [x] Implement Productivity Forecasting Engine (Forecast productivity scores using historical trajectory and momentum).
 - [ ] Add support for more data sources (social media exports, app usage).
 - [ ] Enhance UI/UX for better data storytelling.
 - [ ] Integrate local-first processing options.
