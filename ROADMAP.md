@@ -29,7 +29,7 @@
 ---
 
 ## Phase 3: External Integration & Advanced AI (Days 31-45)
-- [ ] Build AI Investigator Agent Layer.
+- [x] Build AI Investigator Agent Layer (RAG pipeline, local embeddings, LLM orchestration).
 - [ ] Add support for more data sources (social media exports, app usage).
 - [ ] Enhance UI/UX for better data storytelling.
 - [ ] Integrate local-first processing options.

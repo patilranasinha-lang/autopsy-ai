@@ -45,6 +45,14 @@ The API layer is responsible for aggregating all underlying intelligence engines
 - **Payload Optimizer:** Strips out verbose or unnecessary raw data to keep the MVP God-Endpoint payload minimal and fast.
 - **Caching Strategy:** Implements strict caching (Redis/SQLite) for the expensive God-Endpoint. Cache is invalidated only when new session data is ingested.
 
+## AI Investigator Layer
+
+The conversational Retrieval-Augmented Generation (RAG) system that allows users to query their behavioral data using natural language.
+
+- **RAG Pipeline:** Converts daily summaries, habits, and burnout warnings into text chunks (`document_chunker.py`), embeds them using a lightweight local model (`all-MiniLM-L6-v2`), and stores them in a local vector database.
+- **Context Retriever:** Embeds user queries and performs cosine similarity search to retrieve the top-K most relevant historical behavioral facts.
+- **LLM Orchestrator:** Constructs a strict system prompt (`prompt_manager.py`) forcing the LLM to act as a clinical, data-driven behavioral scientist that only answers using the retrieved evidence. Manages short-term context via `conversation_memory.py`.
+
 ## Data Flow
 
 1.  User uploads or connects a data source via the **Frontend**.
