@@ -42,6 +42,10 @@ def create_app(config_name=None):
     from app.routes.correlations import correlations_bp
     from app.routes.procrastination import procrastination_bp
     from app.routes.burnout import burnout_bp
+    from app.routes.trajectory import trajectory_bp
+    from app.routes.intelligence import intelligence_bp
+    from app.routes.digital_twin import digital_twin_bp
+    from app.routes.export import export_bp
 
     app.register_blueprint(health_bp)
     app.register_blueprint(auth_bp, url_prefix='/api/auth')
@@ -56,6 +60,10 @@ def create_app(config_name=None):
     app.register_blueprint(correlations_bp, url_prefix='/api/correlations')
     app.register_blueprint(procrastination_bp, url_prefix='/api/procrastination')
     app.register_blueprint(burnout_bp, url_prefix='/api/burnout')
+    app.register_blueprint(trajectory_bp, url_prefix='/api/trajectory')
+    app.register_blueprint(intelligence_bp, url_prefix='/api/intelligence')
+    app.register_blueprint(digital_twin_bp, url_prefix='/api/digital-twin')
+    app.register_blueprint(export_bp, url_prefix='/api/export')
 
     @app.errorhandler(400)
     def bad_request(error):
