@@ -35,6 +35,15 @@ Autopsy AI follows a decoupled client-server architecture, optimized for scalabi
     - **Productivity Forecasting Engine:** Forecasts daily and weekly Productivity Scores using historical trajectories, habit momentum, and burnout constraints. Analyzes short-term momentum (last 3 days) against long-term baselines (last 30 days EMA) and penalizes/boosts forecasts based on active trajectories (e.g., late-night habits). Currently implements EMA and weighted heuristics, architected for future upgrades to LSTM or Temporal Fusion Transformers.
     - **Behavioral Trajectory Engine:** Unifies macro-trend detection, dynamic goal tracking, and long-term consistency forecasting. Uses rolling 14-day and 30-day windows to detect macro shifts (e.g., chronotype shifting). Calculates dynamic required run-rates for active goals and models streak survival probabilities based on historical failure points. Caches 30-day aggregations to minimize database load. Exposes an API designed for tool-use by future AI Investigators. Designed to be easily upgraded from rolling averages to advanced Time Series Forecasting (ARIMA/Prophet).
     - **Periodic Intelligence & Comparative Analytics Engine:** Automates the compilation of heavy behavioral roll-ups (weekly and monthly). Computes cross-period variance, standard deviation shifts, and percentage deltas to quantify behavioral growth or degradation. Implements Baseline Shifting logic to distinguish permanent cognitive capacity changes from short-term noise. Optimized to use scheduled cron compilation and materialized views rather than on-the-fly HTTP calculations.
+    - **Behavioral Profiling System:** Categorizes the user into dynamic behavioral archetypes based on 30-day baseline data (e.g., "Deep Worker", "Night Owl"). Uses heuristic decision trees (or K-Means clustering) to assign tags and group similar days into behavioral segments. Tracks archetype evolution over time. Designed to run as a background task.
+
+## Orchestration Layer
+
+The API layer is responsible for aggregating all underlying intelligence engines into clean, optimized payloads for the frontend MVP.
+
+- **Intelligence Layer v1:** The God-Endpoint (`/api/v1/intelligence/state`). Aggregates habits, trajectory, burnout risk, and prescriptions into one unified JSON payload.
+- **Payload Optimizer:** Strips out verbose or unnecessary raw data to keep the MVP God-Endpoint payload minimal and fast.
+- **Caching Strategy:** Implements strict caching (Redis/SQLite) for the expensive God-Endpoint. Cache is invalidated only when new session data is ingested.
 
 ## Data Flow
 
