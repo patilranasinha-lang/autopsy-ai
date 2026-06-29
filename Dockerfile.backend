@@ -1,0 +1,32 @@
+# Use an official Python runtime as a parent image
+FROM python:3.10-slim
+
+# Set the working directory in the container
+WORKDIR /app
+
+# Install system dependencies
+RUN apt-get update && apt-get install -y \
+    build-essential \
+    libpq-dev \
+    && rm -rf /var/lib/apt/lists/*
+
+# Copy the requirements file into the container
+# If requirements.txt doesn't exist yet, we can create a dummy one or mock it
+# Assuming it exists or will be copied from project root
+COPY backend/requirements.txt .
+
+# Install Python dependencies
+RUN pip install --no-cache-dir -r requirements.txt
+
+# Copy the current directory contents into the container at /app
+COPY backend/ .
+
+# Set environment variables
+ENV FLASK_APP=run.py
+ENV FLASK_ENV=production
+
+# Expose port 5000 for the Flask app
+EXPOSE 5000
+
+# Run gunicorn
+CMD ["gunicorn", "--bind", "0.0.0.0:5000", "run:app"]

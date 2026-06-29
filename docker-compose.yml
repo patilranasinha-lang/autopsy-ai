@@ -1,98 +1,35 @@
-# ===========================================
-# Docker Compose - Development Environment
-# ===========================================
-# One command to start all services: `docker compose up`
-# ===========================================
-name: autopsy-ai
+version: '3.8'
 
 services:
-  # ===========================================
-  # PostgreSQL Database
-  # ===========================================
-  db:
-    image: postgres:16-alpine
-    container_name: autopsy-db
-    restart: unless-stopped
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-postgres} -d ${POSTGRES_DB:-autopsy_ai}"]
-      interval: 5s
-      timeout: 5s
-      retries: 5
-    volumes:
-      - postgres_data:/var/lib/postgresql/data/
-    environment:
-      POSTGRES_USER: ${POSTGRES_USER:-postgres}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
-      POSTGRES_DB: ${POSTGRES_DB:-autopsy_ai}
-    ports:
-      - "${DB_PORT:-5432}:5432"
-    networks:
-      - app-network
-
-  # ===========================================
-  # Backend API
-  # ===========================================
   backend:
     build:
-      context: ./backend
-      target: development
-    container_name: autopsy-backend
-    restart: unless-stopped
-    healthcheck:
-      test: ["CMD-SHELL", "curl -f http://localhost:5000/health || exit 1"]
-      interval: 10s
-      timeout: 5s
-      retries: 3
-      start_period: 30s
-    volumes:
-      - ./backend:/app
-      - /app/__pycache__  # Ignore local __pycache__
-    environment:
-      FLASK_ENV: development
-      SECRET_KEY: ${SECRET_KEY:-dev-secret-key-please-change}
-      JWT_SECRET_KEY: ${JWT_SECRET_KEY:-jwt-dev-secret-key-please-change}
-      LOG_LEVEL: ${LOG_LEVEL:-DEBUG}
-      DATABASE_URL: ${DATABASE_URL:-postgresql://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-postgres}@db:5432/${POSTGRES_DB:-autopsy_ai}}
+      context: .
+      dockerfile: Dockerfile.backend
     ports:
-      - "${BACKEND_PORT:-5000}:5000"
-    depends_on:
-      db:
-        condition: service_healthy
+      - "5000:5000"
+    environment:
+      - FLASK_ENV=production
+      - DATABASE_URL=sqlite:////app/data/autopsy.db
+    volumes:
+      - autopsy_data:/app/data
     networks:
-      - app-network
+      - autopsy-network
 
-  # ===========================================
-  # Frontend Web App
-  # ===========================================
   frontend:
     build:
-      context: ./frontend
-      target: development
-    container_name: autopsy-frontend
-    restart: unless-stopped
-    volumes:
-      - ./frontend:/app
-      - /app/node_modules  # Keep container node_modules
-    environment:
-      - VITE_API_URL=http://localhost:${BACKEND_PORT:-5000}
+      context: .
+      dockerfile: Dockerfile.frontend
     ports:
-      - "${FRONTEND_PORT:-3000}:3000"
+      - "80:80"
     depends_on:
       - backend
     networks:
-      - app-network
+      - autopsy-network
 
-# ===========================================
-# Volumes for Persistence
-# ===========================================
 volumes:
-  postgres_data:
-    name: autopsy-postgres-data
+  autopsy_data:
+    description: Persistent volume for SQLite and vector store
 
-# ===========================================
-# Shared Network
-# ===========================================
 networks:
-  app-network:
-    name: autopsy-network
+  autopsy-network:
     driver: bridge
